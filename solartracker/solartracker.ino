@@ -1,5 +1,4 @@
 #include <Servo.h> 
-// Declare the Servo pin 
 int servoPin   = 4; 
 int inputLeft  = A0; //blue
 int inputMid   = A3; //green
@@ -14,22 +13,21 @@ String spin = "optimized";
 int ambient = 0;
 int find = 5;
 
-// Create a servo object 
-Servo servo; 
+Servo servo; // Create a servo object 
+
+
 void setup() { 
-   // We need to attach the servo to the used pin number 
    servo.attach(servoPin);
-   Serial.begin(9600);           //  setup serial
-   update();
-   
+   Serial.begin(9600);            //  setup serial
+   log();                         //  updates sensors   
  
-   ambient = (valLeft + valMid + valRight)/3;
-   servo.write(angle);
+   ambient = (valLeft + valMid + valRight)/3; //Reads ambient light level
+   servo.write(angle);                        //Sets motor to default angle
 
    
 } 
 
-void status() {
+void log() {  //Logs info
   Serial.print(valLeft);
   Serial.print("\t");
   Serial.print(valMid);
@@ -47,24 +45,23 @@ void status() {
   Serial.print("Ambient: ");
   Serial.print(ambient);
   Serial.print("\n");
-//  delay(10);
 }
 
-void update() {
+void update() { //Reads diodes
   valLeft = analogRead(inputLeft);
   valMid = analogRead(inputMid);
   valRight = analogRead(inputRight);
 
   
 }
+
 void loop(){ 
-
   
-
-  status();
+  log();
   update();
-  while ((valLeft+valMid+valRight)/3 < ambient+100) {
-    status();
+  
+  while ((valLeft+valMid+valRight)/3 < ambient+100) { //Initial search for source
+    log();
     update();
     angle+=find;
     if (angle == 0 || angle == 180) find *=-1;
@@ -72,18 +69,18 @@ void loop(){
   }
 
   
-  while (valLeft >= valMid + tolerance) {
+  while (valLeft >= valMid + tolerance) { //Rotate cw
+    log();
     update(); 
-    status();
     speed = (valLeft)/(valMid);
     if (angle+(int)speed < 180) angle+=(int)speed;
     spin = "cw";
     servo.write(angle);
 
   }
-  while (valRight >= valMid + tolerance) {
+  while (valRight >= valMid + tolerance) { //Rotate ccw
+    log();
     update();
-    status();
     speed = (valRight/valMid);
     if (angle-(int)speed > 0) angle-= (int)speed;
     spin = "ccw";
