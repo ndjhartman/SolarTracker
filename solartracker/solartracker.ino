@@ -3,7 +3,7 @@ int servoPin   = 4;
 int inputLeft  = A5; //blue
 int inputMid   = A3; //green
 int inputRight = A0; // yellow
-int angle = 0;
+int angle = 55;
 int tolerance = 25;
 double valLeft  = 0;
 double valMid   = 0;
@@ -19,7 +19,7 @@ Servo servo; // Create a servo object
 void setup() { 
    servo.attach(servoPin);
    Serial.begin(9600);            //  setup serial
-   log();                         //  updateDiodesDiodesDiodess sensors   
+   log();                         //  updateDiodes sensors   
  
    ambient = (valLeft + valMid + valRight)/3; //Reads ambient light level
    servo.write(angle);                        //Sets motor to default angle
@@ -57,13 +57,13 @@ void loop(){
   log();
   updateDiodes();
 
-  if (valLeft < ambient + 25 && valMid < ambient +25 && valRight < ambient + 25) {
-    if (spin == "cw" && find < 0)
-      find*=-1;
-    if (spin == "ccw" && find > 0)
-      find*=-1;   
-  }
-    
+//  if (valLeft < ambient + 25 && valMid < ambient +25 && valRight < ambient + 25) {
+//    if (spin == "cw" && find < 0)
+//      find*=-1;
+//    if (spin == "ccw" && find > 0)
+//      find*=-1;   
+//  }
+//    
   while (valLeft < ambient + 25 && valMid < ambient +25 && valRight < ambient + 25) { //Initial search for source
     log();
     updateDiodes();
@@ -71,25 +71,26 @@ void loop(){
 //    
 //    if ((angle += find >= 0) && (angle += find <= 90)) angle+=find;
     angle+= find;
-    if (angle <= 0 || angle >= 90) find *=-1;
+    if (angle <= 0 || angle >= 110) find *=-1;
     servo.write(angle);
   }
 
   
-  while (valLeft >= valMid + tolerance) { //Rotate cw
+  while (valLeft-valMid > valRight-valMid ) { //Rotate cw
     log();
     updateDiodes(); 
+    spin = "searching";
     speed = ((valLeft)/(valMid+1)/4)+2;
     if (angle-(int)speed > 0) angle-=(int)speed;
     spin = "ccw";
     servo.write(angle);
 
   }
-  while (valRight >= valMid + tolerance) { //Rotate ccw
+  while (valRight-valMid > valLeft-valMid + tolerance) { //Rotate ccw
     log();
     updateDiodes();
     speed = ((valRight/valMid+1)/4)+2;
-    if (angle+(int)speed < 90) angle+= (int)speed;
+    if (angle+(int)speed < 220) angle+= (int)speed;
     spin = "cw";
     servo.write(angle);
   }
