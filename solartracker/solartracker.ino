@@ -1,17 +1,17 @@
 #include <Servo.h> 
 int servoPin   = 4; 
-int inputLeft  = A0; //blue
+int inputLeft  = A5; //blue
 int inputMid   = A3; //green
-int inputRight = A5; // yellow
+int inputRight = A0; // yellow
 int angle = 0;
-int tolerance = 100;
+int tolerance = 25;
 double valLeft  = 0;
 double valMid   = 0;
 double valRight = 0;
 double speed = 0;
 String spin = "optimized";
 int ambient = 0;
-int find = 5;
+int find = 4;
 
 Servo servo; // Create a servo object 
 
@@ -19,12 +19,11 @@ Servo servo; // Create a servo object
 void setup() { 
    servo.attach(servoPin);
    Serial.begin(9600);            //  setup serial
-   log();                         //  updates sensors   
+   log();                         //  updateDiodesDiodesDiodess sensors   
  
    ambient = (valLeft + valMid + valRight)/3; //Reads ambient light level
    servo.write(angle);                        //Sets motor to default angle
 
-   
 } 
 
 void log() {  //Logs info
@@ -47,43 +46,51 @@ void log() {  //Logs info
   Serial.print("\n");
 }
 
-void update() { //Reads diodes
+void updateDiodes() { //Reads diodes
   valLeft = analogRead(inputLeft);
   valMid = analogRead(inputMid);
   valRight = analogRead(inputRight);
-
-  
 }
 
 void loop(){ 
   
   log();
-  update();
-  
-  while ((valLeft+valMid+valRight)/3 < ambient+100) { //Initial search for source
+  updateDiodes();
+
+  if (valLeft < ambient + 25 && valMid < ambient +25 && valRight < ambient + 25) {
+    if (spin == "cw" && find < 0)
+      find*=-1;
+    if (spin == "ccw" && find > 0)
+      find*=-1;   
+  }
+    
+  while (valLeft < ambient + 25 && valMid < ambient +25 && valRight < ambient + 25) { //Initial search for source
     log();
-    update();
-    angle+=find;
-    if (angle == 0 || angle == 180) find *=-1;
+    updateDiodes();
+//
+//    
+//    if ((angle += find >= 0) && (angle += find <= 90)) angle+=find;
+    angle+= find;
+    if (angle <= 0 || angle >= 90) find *=-1;
     servo.write(angle);
   }
 
   
   while (valLeft >= valMid + tolerance) { //Rotate cw
     log();
-    update(); 
-    speed = (valLeft)/(valMid);
-    if (angle+(int)speed < 180) angle+=(int)speed;
-    spin = "cw";
+    updateDiodes(); 
+    speed = ((valLeft)/(valMid+1)/4)+2;
+    if (angle-(int)speed > 0) angle-=(int)speed;
+    spin = "ccw";
     servo.write(angle);
 
   }
   while (valRight >= valMid + tolerance) { //Rotate ccw
     log();
-    update();
-    speed = (valRight/valMid);
-    if (angle-(int)speed > 0) angle-= (int)speed;
-    spin = "ccw";
+    updateDiodes();
+    speed = ((valRight/valMid+1)/4)+2;
+    if (angle+(int)speed < 90) angle+= (int)speed;
+    spin = "cw";
     servo.write(angle);
   }
 
